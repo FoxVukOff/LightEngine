@@ -1,0 +1,299 @@
+{
+  "format": 1,
+  "name": "light",
+  "bg": "#161820ff",
+  "grid": 32,
+  "show_grid": true,
+  "size": [
+    1280.0,
+    720.0
+  ],
+  "nodes": [
+    {
+      "type": "Label",
+      "name": "hint",
+      "script": "",
+      "pos": [
+        0.0,
+        -220.0
+      ],
+      "vel": [
+        0.0,
+        0.0
+      ],
+      "gravity": [
+        0.0,
+        0.0
+      ],
+      "angle": 0.0,
+      "spin": 0.0,
+      "scale": 1.0,
+      "z": 0,
+      "visible": true,
+      "text": "LightEngine - стрелки движение, пробел прыжок, F5 play",
+      "color": "#99a6bfff",
+      "size": 16.0,
+      "ox": 0.5,
+      "oy": 0.0,
+      "children": []
+    },
+    {
+      "type": "Rect",
+      "name": "ground",
+      "script": "",
+      "pos": [
+        0.0,
+        480.0
+      ],
+      "vel": [
+        0.0,
+        0.0
+      ],
+      "gravity": [
+        0.0,
+        0.0
+      ],
+      "angle": 0.0,
+      "spin": 0.0,
+      "scale": 1.0,
+      "z": -1,
+      "visible": true,
+      "w": 1600.0,
+      "h": 80.0,
+      "color": "#2e3345ff",
+      "filled": true,
+      "border": 0.0,
+      "ox": 0.5,
+      "oy": 0.0,
+      "children": []
+    },
+    {
+      "type": "Rect",
+      "name": "box1",
+      "script": "",
+      "pos": [
+        -220.0,
+        380.0
+      ],
+      "vel": [
+        0.0,
+        0.0
+      ],
+      "gravity": [
+        0.0,
+        0.0
+      ],
+      "angle": 0.0,
+      "spin": 0.0,
+      "scale": 1.0,
+      "z": 0,
+      "visible": true,
+      "w": 56.0,
+      "h": 96.0,
+      "color": "#4c5c7aff",
+      "filled": true,
+      "border": 0.0,
+      "ox": 0.5,
+      "oy": 1.0,
+      "children": []
+    },
+    {
+      "type": "Rect",
+      "name": "box2",
+      "script": "",
+      "pos": [
+        0.0,
+        380.0
+      ],
+      "vel": [
+        0.0,
+        0.0
+      ],
+      "gravity": [
+        0.0,
+        0.0
+      ],
+      "angle": 0.0,
+      "spin": 0.0,
+      "scale": 1.0,
+      "z": 0,
+      "visible": true,
+      "w": 56.0,
+      "h": 96.0,
+      "color": "#4c5c7aff",
+      "filled": true,
+      "border": 0.0,
+      "ox": 0.5,
+      "oy": 1.0,
+      "children": []
+    },
+    {
+      "type": "Rect",
+      "name": "box3",
+      "script": "",
+      "pos": [
+        240.0,
+        380.0
+      ],
+      "vel": [
+        0.0,
+        0.0
+      ],
+      "gravity": [
+        0.0,
+        0.0
+      ],
+      "angle": 0.0,
+      "spin": 0.0,
+      "scale": 1.0,
+      "z": 0,
+      "visible": true,
+      "w": 56.0,
+      "h": 96.0,
+      "color": "#4c5c7aff",
+      "filled": true,
+      "border": 0.0,
+      "ox": 0.5,
+      "oy": 1.0,
+      "children": []
+    },
+    {
+      "type": "Circle",
+      "name": "ball",
+      "script": "# простое физическое тело\non_update(dt):\n    self.angle = self.angle + 90 * dt\n    if self.pos.y > 452:\n        self.pos.y = 452\n        self.vel.y = self.vel.y * -0.7\n        self.vel.x = self.vel.x * 0.98\n        if abs(self.vel.y) < 40:\n            self.vel.y = 0\n",
+      "pos": [
+        420.0,
+        120.0
+      ],
+      "vel": [
+        -60.0,
+        0.0
+      ],
+      "gravity": [
+        0.0,
+        900.0
+      ],
+      "angle": 0.0,
+      "spin": 0.0,
+      "scale": 1.0,
+      "z": 1,
+      "visible": true,
+      "r": 28.0,
+      "color": "#f2804cff",
+      "filled": true,
+      "border": 0.0,
+      "children": []
+    },
+    {
+      "type": "Area",
+      "name": "player",
+      "script": "# игрок: стрелки или wasd, пробел - прыжок\non_start:\n    self.say(\"player ready\")\n\non_update(dt):\n    let dir = input.axis()\n    self.vel = dir * 320\n    if input.pressed(\"space\"):\n        self.vel.y = -430\n    if dir:\n        self.angle = lerp_angle(self.angle, dir.angle(), 0.25)\n        self.flip_x = dir.x < 0\n    if self.pos.y > 420:\n        self.pos.y = 420\n        self.vel.y = 0\n",
+      "pos": [
+        123.0,
+        456.0
+      ],
+      "vel": [
+        100.0,
+        0.0
+      ],
+      "gravity": [
+        0.0,
+        0.0
+      ],
+      "angle": 0.0,
+      "spin": 0.0,
+      "scale": 1.0,
+      "z": 2,
+      "visible": true,
+      "w": 40.0,
+      "h": 60.0,
+      "debug": true,
+      "color": "#4ce699ff",
+      "children": [
+        {
+          "type": "Rect",
+          "name": "body",
+          "script": "",
+          "pos": [
+            0.0,
+            0.0
+          ],
+          "vel": [
+            0.0,
+            0.0
+          ],
+          "gravity": [
+            0.0,
+            0.0
+          ],
+          "angle": 0.0,
+          "spin": 0.0,
+          "scale": 1.0,
+          "z": 0,
+          "visible": true,
+          "w": 40.0,
+          "h": 60.0,
+          "color": "#5cc7faff",
+          "filled": true,
+          "border": 0.0,
+          "ox": 0.5,
+          "oy": 0.5,
+          "children": []
+        },
+        {
+          "type": "Light2D",
+          "name": "lamp",
+          "script": "",
+          "pos": [
+            0.0,
+            -40.0
+          ],
+          "vel": [
+            0.0,
+            0.0
+          ],
+          "gravity": [
+            0.0,
+            0.0
+          ],
+          "angle": 0.0,
+          "spin": 0.0,
+          "scale": 1.0,
+          "z": 0,
+          "visible": true,
+          "r": 240.0,
+          "color": "#ffdb99ff",
+          "power": 1.0,
+          "children": []
+        }
+      ]
+    },
+    {
+      "type": "Camera2D",
+      "name": "camera",
+      "script": "",
+      "pos": [
+        0.0,
+        0.0
+      ],
+      "vel": [
+        0.0,
+        0.0
+      ],
+      "gravity": [
+        0.0,
+        0.0
+      ],
+      "angle": 0.0,
+      "spin": 0.0,
+      "scale": 1.0,
+      "z": 9,
+      "visible": true,
+      "zoom": 1.0,
+      "follow": "player",
+      "smooth": 0.1,
+      "active": true,
+      "children": []
+    }
+  ]
+}

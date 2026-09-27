@@ -1,0 +1,12 @@
+{
+  "engine": "LightEngine",
+  "lang": "LightScript",
+  "author": "FoxVukOff",
+  "name": "light",
+  "entry": "main.lscene",
+  "size": [
+    1280,
+    720
+  ],
+  "bg": "#161821"
+}
