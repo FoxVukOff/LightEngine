@@ -137,6 +137,9 @@ class Console(QWidget):
         except ScriptError as e:
             self.log('err: %s' % e)
             return
+        except Exception as e:
+            self.log('err: %s: %s' % (type(e).__name__, e))
+            return
         single = len(stmts) == 1 and stmts[0][0] == 'ln' and stmts[0][2][0] == 'expr'
         try:
             if single:
@@ -147,6 +150,8 @@ class Console(QWidget):
             self.log('err: %s' % e)
         except RecursionError:
             self.log('err: stack overflow')
+        except Exception as e:
+            self.log('err: %s: %s' % (type(e).__name__, e))
         if n is not None:
             self.win.inspector.load(n)
         self.win.canvas.update()

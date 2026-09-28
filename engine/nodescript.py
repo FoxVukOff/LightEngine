@@ -205,7 +205,14 @@ class NodeScript:
         env.define('self', self.api)
         self.env = env
         self.interp = Interp(self.node.name or 'node')
-        self.interp.run(stmts, env)
+        try:
+            self.interp.run(stmts, env)
+        except Exception as e:
+            # кривой скрипт не должен ронять редактор
+            self.err = '%s: %s' % (type(e).__name__, e)
+            self.env = None
+            self.fns = {}
+            return
         for h in HOOKS:
             f = env.get(h)
             if isinstance(f, Func):
@@ -225,6 +232,9 @@ class NodeScript:
             return None
         except RecursionError:
             self.err = 'stack overflow in %s' % name
+            return None
+        except Exception as e:
+            self.err = '%s: %s' % (type(e).__name__, e)
             return None
         finally:
             if gfx is not None:

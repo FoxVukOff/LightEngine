@@ -32,12 +32,17 @@ class Game(ScriptHost):
         if n.rt is None:
             n.rt = NodeScript(n, self.ctx)
         n.rt.sync(n.script)
-        if n.rt.err:
-            last = self.errors[-1] if self.errors else None
-            if last != (n.name, n.rt.err):
-                self.errors.append((n.name, n.rt.err))
-                del self.errors[:-20]
+        self.report(n.name, n.rt.err)
         return n.rt
+
+    def report(self, who, err):
+        if not err:
+            return
+        pair = (who, err)
+        if pair in self.errors:
+            return
+        self.errors.append(pair)
+        del self.errors[:-20]
 
     def step(self, dt):
         self.input.begin()
@@ -55,7 +60,9 @@ class Game(ScriptHost):
             if n.dead:
                 continue
             if n.script.strip():
-                self.script_of(n).call('on_update', [self.dt])
+                rt = self.script_of(n)
+                rt.call('on_update', [self.dt])
+                self.report(n.name, rt.err)
             n.update(self.dt)
             self.run_timers(n, self.dt)
         self.collide()
@@ -73,6 +80,7 @@ class Game(ScriptHost):
                 n.tleft[name] = float(period)
                 if rt is not None:
                     rt.call('on_timer', [name])
+                    self.report(n.name, rt.err)
             else:
                 n.tleft[name] = left
 
@@ -91,11 +99,15 @@ class Game(ScriptHost):
                         b._touch.add(key)
                         a.rt.call('on_collide', [b.rt.api])
                         b.rt.call('on_collide', [a.rt.api])
+                        self.report(a.name, a.rt.err)
+                        self.report(b.name, b.rt.err)
                 elif key in a._touch:
                     a._touch.discard(key)
                     b._touch.discard(key)
                     a.rt.call('on_collide_exit', [b.rt.api])
                     b.rt.call('on_collide_exit', [a.rt.api])
+                    self.report(a.name, a.rt.err)
+                    self.report(b.name, b.rt.err)
 
     def click(self, wx, wy):
         n = self.scene.pick(wx, wy)
@@ -103,6 +115,7 @@ class Game(ScriptHost):
             n = n.parent
         if n is not None and n.rt is not None:
             n.rt.call('on_click', [Vec(wx, wy)])
+            self.report(n.name, n.rt.err)
 
     def key(self, name, down):
         if down:
@@ -114,6 +127,7 @@ class Game(ScriptHost):
         for n in list(self.scene.walk()):
             if n.script.strip() and n.rt is not None:
                 n.rt.call('on_key', [name])
+                self.report(n.name, n.rt.err)
 
     def update_camera(self, dt):
         cam = self.scene.camera()

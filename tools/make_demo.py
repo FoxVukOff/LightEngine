@@ -8,7 +8,7 @@ from engine.scene import Scene
 from engine.serialize import save_scene
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-p = Project.open(os.path.join(root, 'project.json'))
+p = Project.open(os.path.join(root, 'projects', 'demo', 'project.json'))
 sc = Scene(p.name)
 sc.build_starter()
 p.make_dirs()

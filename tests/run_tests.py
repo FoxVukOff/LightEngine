@@ -266,6 +266,24 @@ for fn in ('follow_mouse.ls', 'spawner.ls', 'on_draw.ls'):
         spawned = len(node.children)
 check('spawner made enemies', spawned > 0, True)
 
+print('crash safety')
+sc9 = Scene('crash')
+for i, code in enumerate([
+        'on_update(dt):\n    self.pos = null.pos.x\n',          # атрибут у null
+        'on_update(dt):\n    let a = 1 / 0\n',                   # деление на ноль
+        'on_update(dt):\n    self.kill().nope()\n',             # вызов не того поля
+        'on_update(dt):\n    return 5 + "строка"\n',            # не тот тип
+        'on_start:\n    self.add("NoSuchType")\n',             # неизвестный тип узла
+]):
+    n = sc9.add(Area('n%d' % i))
+    n.script = code
+gx = Game(sc9, Resources())
+for i in range(10):
+    gx.step(0.016)
+check('errors reported, no crash', len(gx.errors) >= 5, True)
+check('all five reported', len({e[0] for e in gx.errors}), 5)
+check('game still stepping', gx.frame, 10)
+
 print()
 if fails:
     print('%d failed: %s' % (len(fails), ', '.join(fails)))

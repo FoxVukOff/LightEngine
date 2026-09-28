@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "name": "light",
+  "name": "demo",
   "bg": "#161820ff",
   "grid": 32,
   "show_grid": true,

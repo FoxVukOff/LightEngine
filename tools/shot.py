@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
@@ -11,6 +12,7 @@ from engine.mathx import Vec
 from engine.project import Project
 from engine.serialize import load_scene
 from editor.mainwindow import MainWindow
+from editor.theme import apply
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(ROOT, 'docs')
@@ -25,20 +27,28 @@ def load_fonts():
             QFontDatabase.addApplicationFont(f)
 
 
+def settle(app, n=12):
+    # offscreen не перерисовывает всё сразу, ждём пару кадров
+    for i in range(n):
+        app.processEvents()
+        time.sleep(0.03)
+
+
 def main():
     app = QApplication.instance() or QApplication([])
     load_fonts()
+    apply(app)
     os.makedirs(DOCS, exist_ok=True)
-    proj = Project.open(os.path.join(ROOT, 'project.json'))
+    proj = Project.open(os.path.join(ROOT, 'projects', 'demo', 'project.json'))
     win = MainWindow(proj, proj.scene_path())
     win.resize(1440, 860)
     win.show()
-    for i in range(4):
-        app.processEvents()
+    settle(app, 6)
     win.select_node(win.scene.find('player'))
     win.canvas.frame_all()
     win.canvas.update()
-    app.processEvents()
+    win.repaint()
+    settle(app)
     win.grab().save(os.path.join(DOCS, 'editor.png'), 'PNG')
 
     scene = load_scene(proj.scene_path())

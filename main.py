@@ -1,60 +1,61 @@
 import os
-import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from engine import AUTHOR, ENGINE
+from PyQt6.QtWidgets import QApplication
+
 from engine.project import Project
-from engine.resources import app_root
+from editor import projects
+from editor.crashlog import install
 from editor.mainwindow import open_app
+from editor.theme import apply
 
 
-def seed_project(p):
-    """копируем демо-сцену и ассеты из сборки в новый проект"""
-    p.make_dirs()
-    src = app_root()
-    bundled_scene = os.path.join(src, 'scenes', 'main.lscene')
-    if os.path.isfile(bundled_scene) and not os.path.isfile(p.scene_path()):
-        shutil.copyfile(bundled_scene, p.scene_path())
-    bundled_assets = os.path.join(src, 'assets')
-    if os.path.isdir(bundled_assets) and not os.listdir(p.assets):
-        for name in os.listdir(bundled_assets):
-            s = os.path.join(bundled_assets, name)
-            if os.path.isfile(s):
-                shutil.copyfile(s, os.path.join(p.assets, name))
-    return p
-
-
-def ensure_project(arg_scene=None):
-    if arg_scene:
-        p = Project.find_near(os.path.dirname(os.path.abspath(arg_scene)))
-        if p is not None:
-            return p, os.path.abspath(arg_scene)
-        root = os.path.dirname(os.path.dirname(os.path.abspath(arg_scene)))
-        return Project(root, os.path.basename(root)), os.path.abspath(arg_scene)
-    p = Project.find_near()
+def pick_project(arg=None, allow_dialog=True):
+    # сначала пробуем память, потом окно приветствия, ничего не создаём сами
+    if arg:
+        path = arg if arg.endswith('project.json') else os.path.join(arg, 'project.json')
+        try:
+            return Project.open(path)
+        except (OSError, ValueError):
+            return None
+    p = projects.last()
     if p is not None:
-        return p, None
-    if getattr(sys, 'frozen', False):
-        base = os.path.dirname(sys.executable)
-        name = os.path.basename(base) or 'LightEngine'
-        p = seed_project(Project(base, name))
-        p.save()
-        return p, None
-    root = app_root()
-    p = Project(root, os.path.basename(root))
-    p.make_dirs()
-    p.save()
-    return p, None
+        return p
+    if not allow_dialog:
+        return None
+    from editor.welcome import Welcome
+    dlg = Welcome()
+    if dlg.exec() == Welcome.DialogCode.Accepted and dlg.picked is not None:
+        return dlg.picked
+    return None
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith('-')]
-    arg_scene = args[0] if args and args[0].lower().endswith('.lscene') else None
-    project, scene = ensure_project(arg_scene)
-    app, win = open_app(project, scene)
-    if os.environ.get('LE_SELFTEST'):
+    args = sys.argv[1:]
+    selftest = bool(os.environ.get('LE_SELFTEST'))
+    arg_scene = next((a for a in args if a.lower().endswith('.lscene')), None)
+    arg_proj = None
+    if '--project' in args:
+        i = args.index('--project')
+        if i + 1 < len(args):
+            arg_proj = args[i + 1]
+    else:
+        arg_proj = next((a for a in args if a.endswith('.json') or os.path.isdir(a)), None)
+
+    app = QApplication.instance() or QApplication(sys.argv)
+    apply(app)
+    install(projects.engine_dir())
+
+    if selftest and arg_proj is None:
+        arg_proj = os.path.join(projects.projects_dir(), 'demo')
+    project = pick_project(arg_proj, allow_dialog=not selftest)
+    _, win = open_app(project, arg_scene)
+    if project is not None:
+        projects.remember(project)
+    win.show()
+    if selftest:
         for i in range(5):
             app.processEvents()
         win.select_node(win.scene.find('player'))
@@ -62,7 +63,8 @@ def main():
         for i in range(30):
             win.tick()
         win.stop()
-        print('selftest: editor ok, %d nodes, errors %s' % (len(win.scene.nodes), win.game.errors or 'none'))
+        print('selftest: editor ok, project %s, %d nodes, errors %s' % (
+            project.name if project else 'none', len(win.scene.nodes), win.game.errors or 'none'))
         return 0
     app.exec()
     return 0

@@ -122,7 +122,21 @@ class Canvas(QWidget):
         if playing:
             self.draw_hud(p)
         self.draw_frame(p)
+        if self.win.project is None:
+            self.draw_noproject(p)
         p.end()
+
+    def draw_noproject(self, p):
+        p.setPen(QPen(to_qcolor(Color(1, 1, 1, 0.35))))
+        f = p.font()
+        f.setPointSizeF(15.0)
+        p.setFont(f)
+        p.drawText(QPointF(self.width() / 2, self.height() / 2 - 10),
+                   'проект не выбран')
+        p.setFont(self.font())
+        p.setPen(QPen(to_qcolor(Color(1, 1, 1, 0.25))))
+        p.drawText(QPointF(self.width() / 2, self.height() / 2 + 14),
+                   'file -> new project... или ctrl+shift+n')
 
     def draw_grid(self, p, size):
         step = self.scene().grid or 32

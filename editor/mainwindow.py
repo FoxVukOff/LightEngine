@@ -2,8 +2,8 @@ import os
 import sys
 import time
 
-from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtCore import QTimer, Qt, QUrl
+from PyQt6.QtGui import QAction, QDesktopServices, QKeySequence
 from PyQt6.QtWidgets import (QApplication, QDockWidget, QFileDialog, QInputDialog, QLabel,
                              QMainWindow, QMenu, QMessageBox, QSizePolicy, QToolBar, QWidget)
 
@@ -68,6 +68,13 @@ class MainWindow(QMainWindow):
         self.status = QLabel('')
         self.statusBar().addPermanentWidget(self.status)
 
+        self.resize(1440, 860)
+        self.dock_nodes.widget().setMinimumWidth(220)
+        self.dock_props.widget().setMinimumWidth(280)
+        self.dock_assets.widget().setMinimumWidth(220)
+        self.resizeDocks([self.dock_nodes, self.dock_props], [260, 300], Qt.Orientation.Horizontal)
+        self.resizeDocks([self.dock_nodes, self.dock_assets], [300, 340], Qt.Orientation.Vertical)
+
         self.build_menus()
         self.wire()
         self.load_scene(scene_path)
@@ -95,8 +102,9 @@ class MainWindow(QMainWindow):
         self.act(m, 'save as...', self.save_as, QKeySequence('Ctrl+Shift+S'))
         self.act(m, 'reload from disk', self.reload)
         m.addSeparator()
-        self.act(m, 'new project...', self.new_project)
-        self.act(m, 'open project...', self.open_project)
+        self.act(m, 'new project...', self.new_project, QKeySequence('Ctrl+Shift+N'))
+        self.act(m, 'open project...', self.open_project, QKeySequence('Ctrl+Shift+O'))
+        self.act(m, 'project folder', self.reveal_project)
         m.addSeparator()
         self.act(m, 'build game exe...', self.build_game, QKeySequence('Ctrl+B'))
         self.act(m, 'run game in window', self.run_window)
@@ -200,10 +208,15 @@ class MainWindow(QMainWindow):
     def save(self):
         if not self.scene_path:
             return self.save_as()
-        save_scene(self.scene_path, self.scene)
-        if self.project:
-            self.project.entry = os.path.basename(self.scene_path)
-            self.project.save()
+        try:
+            save_scene(self.scene_path, self.scene)
+            if self.project:
+                self.project.entry = os.path.basename(self.scene_path)
+                self.project.save()
+        except OSError as e:
+            self.log('save failed: %s' % e)
+            QMessageBox.warning(self, 'save failed', '%s' % e)
+            return None
         self.dirty = False
         self.set_title()
         self.statusBar().showMessage('saved %s' % self.scene_path, 2500)
@@ -233,9 +246,15 @@ class MainWindow(QMainWindow):
     def open_scene(self):
         d = self.project.scenes if self.project else os.getcwd()
         name, _ = QFileDialog.getOpenFileName(self, 'open scene', d, 'lightengine scene (*.lscene)')
-        if name:
+        if not name:
+            return
+        try:
             self.load_scene(name)
-            self.log('opened %s' % os.path.basename(name))
+        except Exception as e:
+            self.log('cannot open scene: %s' % e)
+            QMessageBox.warning(self, 'cannot open scene', '%s' % e)
+            return
+        self.log('opened %s' % os.path.basename(name))
 
     def node_by_id(self, nid):
         for n in self.scene.walk():
@@ -421,11 +440,7 @@ class MainWindow(QMainWindow):
             return
         self.playing = False
         self.timer.stop()
-        if self._snapshot is not None:
-            self.scene.nodes = []
-            for d in self._snapshot:
-                self.scene.add(node_from_dict(d))
-            self._snapshot = None
+        self.restore_snapshot()
         self.game.input.clear()
         self.play_action.setEnabled(True)
         self.stop_action.setEnabled(False)
@@ -436,17 +451,37 @@ class MainWindow(QMainWindow):
         self.game.errors = []
         self.log('stop')
 
+    def restore_snapshot(self):
+        if self._snapshot is None:
+            return
+        self.scene.nodes = []
+        for d in self._snapshot:
+            self.scene.add(node_from_dict(d))
+        self._snapshot = None
+        self.game.scene = self.scene
+        self.game.input.clear()
+
     def tick(self):
         now = time.perf_counter()
         dt = now - self._last
         self._last = now
-        self.game.step(dt)
-        self.canvas.update()
-        if self.game.errors and self.game.errors[-1] != self._last_err:
-            self._last_err = self.game.errors[-1]
-            self.console.log('%s: %s' % (self._last_err[0], self._last_err[1]))
-        self.status.setText('fps %d  nodes %d  zoom %d%%  frame %d' % (
-            self.game.fps, len(list(self.scene.walk())), self.canvas.zoom * 100, self.game.frame))
+        try:
+            self.game.step(dt)
+            self.canvas.update()
+            if self.game.errors and self.game.errors[-1] != self._last_err:
+                self._last_err = self.game.errors[-1]
+                self.console.log('%s: %s' % (self._last_err[0], self._last_err[1]))
+            self.status.setText('fps %d  nodes %d  zoom %d%%  frame %d' % (
+                self.game.fps, len(list(self.scene.walk())), self.canvas.zoom * 100, self.game.frame))
+        except Exception as e:
+            # один плохой кадр не должен ронять редактор
+            self.playing = False
+            self.timer.stop()
+            self.play_action.setEnabled(True)
+            self.stop_action.setEnabled(False)
+            self.play_btn.setText('play')
+            self.log('play stopped: %s: %s' % (type(e).__name__, e))
+            self.restore_snapshot()
 
     def run_window(self):
         self.save()
@@ -462,35 +497,33 @@ class MainWindow(QMainWindow):
     # --- проекты ---
 
     def new_project(self):
-        d = QFileDialog.getExistingDirectory(self, 'new project folder',
-                                              os.path.join(os.path.dirname(self.project.root) if self.project
-                                                            else os.getcwd(), 'projects'))
-        if not d:
+        from editor import projects
+        name, ok = QInputDialog.getText(self, 'новый проект',
+                                        'имя проекта, папка создастся в\n%s' % projects.projects_dir(),
+                                        text='')
+        if not ok or not name.strip():
             return
-        name = os.path.basename(os.path.normpath(d))
-        p = Project(d, name)
-        sc = Scene(name)
-        sc.size = Vec(p.w, p.h)
-        sc.build_starter()
-        p.make_dirs()
-        p.save()
-        save_scene(p.scene_path(p.entry), sc)
-        self.set_project(p, p.scene_path(p.entry))
-        self.log('project %s created' % name)
+        try:
+            p = projects.create_project(name)
+        except FileExistsError:
+            QMessageBox.warning(self, 'уже есть', 'проект %s уже создан' % projects.clean_name(name))
+            return
+        except OSError as e:
+            QMessageBox.warning(self, 'не получилось', '%s' % e)
+            return
+        self.set_project(p, p.scene_path())
+        self.log('project %s created' % p.name)
 
     def open_project(self):
-        d = QFileDialog.getExistingDirectory(self, 'open project', self.project.root if self.project else '')
-        if not d:
+        from editor.welcome import Welcome
+        dlg = Welcome(self)
+        if dlg.exec() != Welcome.DialogCode.Accepted or dlg.picked is None:
             return
-        p = Project.find_near(d)
-        if p is None:
-            p = Project(d, os.path.basename(os.path.normpath(d)))
-            p.make_dirs()
-            p.save()
-        self.set_project(p, p.scene_path())
-        self.log('project %s opened' % p.name)
+        self.set_project(dlg.picked, dlg.picked.scene_path())
+        self.log('project %s opened' % dlg.picked.name)
 
     def set_project(self, project, path=None):
+        from editor import projects
         self.project = project
         self.res = Resources(project.root)
         self.game.res = self.res
@@ -499,6 +532,12 @@ class MainWindow(QMainWindow):
         self.load_scene(path)
         self.assets.reload()
         self.dock_nodes.setWindowTitle('nodes - %s' % project.name)
+        self.dock_assets.setWindowTitle('assets - %s' % project.name)
+        projects.remember(project)
+
+    def open_projects(self):
+        # окно приветствия из редактора
+        self.open_project()
 
     def project_settings(self):
         if not self.project:
@@ -517,6 +556,11 @@ class MainWindow(QMainWindow):
         self.game.size = self.scene.size
         self.touch()
         self.log('project %s %dx%d' % (self.project.name, w, h))
+
+    def reveal_project(self):
+        if not self.project:
+            return
+        QDesktopServices.openUrl(QUrl.fromLocalFile(self.project.root))
 
     def build_game(self):
         if not self.project:
@@ -578,6 +622,7 @@ class MainWindow(QMainWindow):
 def open_app(project=None, scene=None):
     app = QApplication.instance() or QApplication(sys.argv)
     app.setApplicationName(ENGINE)
+    from editor.theme import apply
+    apply(app)
     w = MainWindow(project, scene)
-    w.show()
     return app, w

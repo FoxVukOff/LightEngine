@@ -2,7 +2,7 @@
   "engine": "LightEngine",
   "lang": "LightScript",
   "author": "FoxVukOff",
-  "name": "light",
+  "name": "demo",
   "entry": "main.lscene",
   "size": [
     1280,

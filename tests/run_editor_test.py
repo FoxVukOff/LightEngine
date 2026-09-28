@@ -24,13 +24,13 @@ def check(name, got, want=True):
 
 app = QApplication.instance() or QApplication([])
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-proj = Project.open(os.path.join(root, 'project.json'))
+proj = Project.open(os.path.join(root, 'projects', 'demo', 'project.json'))
 win = MainWindow(proj, proj.scene_path())
 win.resize(1280, 800)
 win.show()
 app.processEvents()
 
-check('project loaded', win.project.name, 'light')
+check('project loaded', win.project.name, 'demo')
 check('scene nodes', len(win.scene.nodes) > 5)
 check('player found', win.scene.find('player') is not None)
 check('inspector empty', win.inspector.node is None)

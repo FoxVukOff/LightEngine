@@ -6,6 +6,8 @@ play прямо в редакторе и сборка игры в отдельн
 
 автор: **FoxVukOff**
 
+![окно приветствия](docs/welcome.png)
+
 ![редактор](docs/editor.png)
 
 ## возможности
@@ -13,9 +15,10 @@ play прямо в редакторе и сборка игры в отдельн
 - язык LightScript: python-подобный синтаксис, события узлов, векторы, цвета, таймеры
 - узлы: `Sprite`, `Rect`, `Circle`, `Label`, `Area`, `Camera2D`, `Light2D`, `Node2D`
 - сцены в json, версии хранятся коммитами git
-- проекты: у каждого свои `assets`, `scenes` и `dist`
+- проекты в `projects`, у каждого свои `assets`, `scenes` и `dist`
 - play в редакторе, тест в отдельном окне, экспорт игры в exe
 - консоль LightScript прямо в редакторе, `help()` показывает список языка
+- тёмная тема, ошибки скриптов не роняют редактор, всё пишется в `logs/error.log`
 
 ## быстрый старт
 
@@ -24,7 +27,12 @@ pip install -r requirements.txt
 python main.py
 ```
 
-первый запуск создаёт `project.json`, папки `assets`, `scenes`, `dist` и стартовую сцену.
+при первом запуске появляется окно приветствия. в нём вводится имя проекта и жмётся
+`создать`, папка создаётся в `projects` рядом с движком: `projects/<имя>/`.
+ничего само не создаётся, демо-проект для примера лежит в `projects/demo`.
+в следующий раз движок откроет последний проект сам, поменять можно через
+`file -> open project`.
+
 скрипты лежат в `examples`, их можно копировать в поле script у любого узла.
 
 ## управление редактором
@@ -35,6 +43,8 @@ python main.py
 | `F6` | stop |
 | `ctrl+s` | сохранить сцену |
 | `ctrl+o` | открыть сцену |
+| `ctrl+shift+n` | новый проект |
+| `ctrl+shift+o` | окно проектов |
 | `ctrl+b` | собрать игру в exe |
 | `ctrl+d` | дублировать узел |
 | `ctrl+shift+f` | вписать сцену в экран |
@@ -59,24 +69,23 @@ build\build_exe.bat --console
 
 ```bat
 build\build_game.bat путь_к_проекту имя_игры
-python build\build_game.py . --name mygame --console
+python build\build_game.py projects/demo --name mygame --console
 ```
 
 в редакторе то же самое делает `file -> build game exe` или `ctrl+b`.
 результат лежит в `dist` проекта, для движка в `build\dist`.
 нужен `pip install pyinstaller`.
 
-exe переносимый: если рядом нет `project.json`, проект с демо-сценой создаётся
-в папке самого exe.
-
 ## структура проекта
 
 ```text
-project.json     имя, входная сцена, размер окна, цвет фона
-scenes/          сцены .lscene, json в читаемом виде
-assets/          текстуры png jpg bmp svg и звуки wav ogg mp3
-scripts/         заметки и куски скриптов
-dist/            собранные exe игр
+projects/<имя>/
+  project.json     имя, входная сцена, размер окна, цвет фона
+  scenes/          сцены .lscene, json в читаемом виде
+  assets/          текстуры png jpg bmp svg и звуки wav ogg mp3
+  scripts/         заметки и куски скриптов
+  dist/            собранные exe игр
+  logs/            error.log с крашами, если что-то пошло не так
 ```
 
 ## структура репозитория
@@ -84,10 +93,11 @@ dist/            собранные exe игр
 ```text
 engine/     mathx node scene game graphics resources input project serialize gameapp
 lscript/    lexer parser runtime builtins
-editor/     mainwindow canvas hierarchy inspector console assets
+editor/     mainwindow canvas hierarchy inspector console assets welcome theme projects
 build/      build_exe.py build_game.py pack.py
+projects/   demo проект как пример, остальные создаются из редактора
 tests/      run_tests.py run_editor_test.py
-tools/      make_demo.py selftest_game.py
+tools/      make_demo.py make_icon.py shot.py shot_welcome.py selftest_game.py
 ```
 
 ## язык
@@ -120,7 +130,7 @@ python tests\run_editor_test.py
 так проверяется и движок из исходников, и собранный exe:
 
 ```bat
-set LE_SELFTEST=1 && python main.py
+set LE_SELFTEST=1 && python main.py --project projects/demo
 set LE_SELFTEST=1 && dist\mygame.exe
 ```
 
