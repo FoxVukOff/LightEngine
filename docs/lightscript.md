@@ -130,7 +130,7 @@ repeat -1:               # бесконечный цикл
 
 ```lightscript
 let v = v2(10, 20)               # вектор, есть ещё vec2()
-let c = rgb(255, 120, 60)        # цвет, есть color()
+let c = rgb(255, 120, 60)        # цвет, есть color(), числа 0..255
 let c2 = rgb(0xff8040)           # цвет из числа
 let s = "строка"
 let s2 = """
@@ -145,16 +145,22 @@ let r = 0..10
 вектор:
 
 ```lightscript
-v.len() v.len2() v.normed() v.angle() v.rot(45)
-v.dist_to(other) v.to(other, 0.5) v.dot(other) v.x v.y
+v.len() v.len2() v.normed() v.angle() v.rot(45) v.round()
+v.dist_to(other) v.to(other, 0.5) v.dot(other) v.cross(other)
 v + w   v - w   v * 2   v / 2   -v
+v.x    v.y
 ```
 
 цвет:
 
 ```lightscript
 c.mix(other, 0.5) c.with_alpha(0.5) c.to_hex() c * 0.5
+c.r   c.g   c.b   c.a
 ```
+
+у объектов движка поля читаются без скобок, а методы вызываются: `self.pos`,
+`self.pos.x`, но `self.find("body")`. если имя совпадает с полем и с методом,
+побеждает поле.
 
 ## self
 

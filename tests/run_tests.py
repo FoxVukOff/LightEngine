@@ -102,7 +102,7 @@ check('coalesce', e.get('g'), 42)
 check('pipe clamp', e.get('h'), 3)
 check('list index', e.get('lst')[2], 3)
 check('dict get', e.get('d')['hp'], 10)
-check('color', rgb(255, 0, 0).to_hex(), '#ff000001')
+check('color', rgb(255, 0, 0).to_hex(), '#ff0000ff')
 check('range obj', list(Range(0, 5, 2)), [0, 2, 4])
 
 e3 = run('''
@@ -283,6 +283,42 @@ for i in range(10):
 check('errors reported, no crash', len(gx.errors) >= 5, True)
 check('all five reported', len({e[0] for e in gx.errors}), 5)
 check('game still stepping', gx.frame, 10)
+
+print('script api')
+e4 = run('''
+let a = v2(3, 4)
+let b = v2(1, 0)
+let ops = {}
+ops.len = a.len()
+ops.len2 = a.len2()
+ops.angle = round(a.angle())
+ops.normed = a.normed().x |> round(3)
+ops.rot = a.rot(90).round().x
+ops.dist = a.dist_to(b)
+ops.to = a.to(b, 0.5).x
+ops.sum = (a + b).x
+ops.mul = (a * 2).x
+ops.div = (a / 2).x
+ops.neg = (-a).x
+ops.dot = a.dot(b)
+ops.cross = a.cross(b)
+let c = rgb(10, 20, 30)
+ops.hex = c.to_hex()
+ops.alpha = c.with_alpha(0.5).a
+ops.mix = c.mix(rgb(20, 40, 60), 0.5).r |> round(4)
+let s = "привет"
+ops.upper_len = len(s)
+ops.range_len = len(0..5)
+ops.items = count([1, 2, 3], 2)
+''')
+expect = {'len': 5.0, 'len2': 25.0, 'angle': 53.0, 'normed': 0.6, 'rot': -4.0, 'dist': 4.472,
+          'to': 2.0, 'sum': 4.0, 'mul': 6.0, 'div': 1.5, 'neg': -3.0, 'dot': 3.0, 'cross': -4.0,
+          'hex': '#0a141eff', 'alpha': 0.5, 'mix': 0.0588, 'upper_len': 6, 'range_len': 5, 'items': 1}
+ops = e4.get('ops')
+for k, want in expect.items():
+    got = ops[k]
+    ok = abs(got - want) < 0.001 if isinstance(got, float) else got == want
+    check('api %s' % k, ok, True)
 
 print()
 if fails:

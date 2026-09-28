@@ -4,6 +4,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication
 
 from engine.mathx import Vec
@@ -121,6 +122,77 @@ flip.set_prop('flip_x', True)
 check('rect flip drawn', not win.canvas.grab().isNull())
 win.del_node(sprite)
 win.del_node(flip)
+
+# мышь: рамка выделения, панорама, перетаскивание
+class FakePoint:
+    def __init__(self, x, y):
+        self._x, self._y = x, y
+
+    def x(self):
+        return self._x
+
+    def y(self):
+        return self._y
+
+
+class FakeEvent:
+    def __init__(self, x, y, button=Qt.MouseButton.LeftButton):
+        self._p = FakePoint(x, y)
+        self._b = button
+
+    def position(self):
+        return self._p
+
+    def button(self):
+        return self._b
+
+
+class FakeKeyEvent:
+    def __init__(self, name):
+        self._name = name
+        self._text = name if len(name) == 1 else ''
+
+    def key(self):
+        from PyQt6.QtCore import Qt as Q
+        return Q.Key.Key_F if self._name == 'f' else Q.Key.Key_A
+
+    def text(self):
+        return self._text
+
+    def modifiers(self):
+        return Qt.KeyboardModifier.NoModifier
+
+
+LEFT = Qt.MouseButton.LeftButton
+c.pan = Vec(0, 0)
+c.zoom = 1.0
+c.sel = None
+c.mousePressEvent(FakeEvent(100, 100, LEFT))
+check('press starts box', c._mode, 'box')
+c.mouseMoveEvent(FakeEvent(500, 400, LEFT))
+check('box drag moved', c._box[1].x != c._box[0].x, True)
+c.mouseReleaseEvent(FakeEvent(500, 400, LEFT))
+check('box released', c._mode, None)
+c._space = True
+c.mousePressEvent(FakeEvent(200, 200, LEFT))
+c.mouseMoveEvent(FakeEvent(300, 260, LEFT))
+check('pan moved', (c.pan.x, c.pan.y), (-100.0, -60.0))
+c.mouseReleaseEvent(FakeEvent(300, 260, LEFT))
+c._space = False
+c.snap = False
+sel_node = win.scene.find('ball')
+x0 = sel_node.wpos().x
+c.sel = sel_node
+scr = c.to_screen(x0, sel_node.wpos().y)
+c.mousePressEvent(FakeEvent(scr.x, scr.y, LEFT))
+check('press grabs node', c._mode, 'drag')
+c.mouseMoveEvent(FakeEvent(scr.x + 40, scr.y, LEFT))
+check('drag moved node', sel_node.wpos().x - x0, 40.0)
+c.mouseReleaseEvent(FakeEvent(scr.x + 40, scr.y, LEFT))
+check('drag released', c._mode, None)
+c.snap = True
+c.keyPressEvent(FakeKeyEvent('f'))
+check('frame node keeps zoom', c.zoom > 0)
 
 # сохранение и загрузка
 path = win.save()

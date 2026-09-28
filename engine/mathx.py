@@ -62,6 +62,10 @@ class Vec:
     def angle_to(self, o):
         return math.degrees(math.atan2(o.y - self.y, o.x - self.x))
 
+    def round(self, digits=0):
+        m = 10.0 ** digits
+        return Vec(round(self.x * m) / m, round(self.y * m) / m)
+
     def to(self, o, t):
         return Vec(self.x + (o.x - self.x) * t, self.y + (o.y - self.y) * t)
 
@@ -164,12 +168,11 @@ class Color:
         return 'rgb%s' % ([int(round(c * 255)) for c in self.to_list()],)
 
 
-def rgb(r, g=None, b=None, a=1.0):
+def rgb(r, g=None, b=None, a=255):
+    # все четыре числа 0..255, один аргумент это 0xRRGGBB
     if g is None:
         n = int(r)
         return Color(((n >> 16) & 255) / 255.0, ((n >> 8) & 255) / 255.0, (n & 255) / 255.0, 1.0)
-    if a is None:
-        a = 1.0
     return Color(r / 255.0, g / 255.0, b / 255.0, a / 255.0)
 
 

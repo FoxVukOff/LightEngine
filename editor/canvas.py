@@ -277,8 +277,8 @@ class Canvas(QWidget):
             self.game().input.mouse_move(pos.x(), pos.y())
             return
         if self._mode == 'pan':
-            dx = (pos.x() - self._press.x()) / self.zoom
-            dy = (pos.y() - self._press.y()) / self.zoom
+            dx = (pos.x() - self._press.x) / self.zoom
+            dy = (pos.y() - self._press.y) / self.zoom
             self.pan = self.pan - Vec(dx, dy)
             self._press = Vec(pos.x(), pos.y())
             self.update()
@@ -293,7 +293,7 @@ class Canvas(QWidget):
             self.update()
             return
         if self._mode == 'box':
-            self._box = (self.to_world(self._press.x(), self._press.y()), w)
+            self._box = (self.to_world(self._press.x, self._press.y), w)
             self.update()
             return
         self.update()
