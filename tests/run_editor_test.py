@@ -194,6 +194,24 @@ c.snap = True
 c.keyPressEvent(FakeKeyEvent('f'))
 check('frame node keeps zoom', c.zoom > 0)
 
+# создание и удаление каждого типа узла, без появления сирот
+base_count = len(win.scene.nodes)
+for t in ('Node', 'Node2D', 'Sprite', 'Rect', 'Circle', 'Label', 'Area', 'Camera2D', 'Light2D'):
+    before = len(win.scene.nodes)
+    n = win.add_node(t, None, None)
+    check('added ' + t, len(win.scene.nodes), before + 1)
+    check('selected ' + t, win.sel is n, True)
+    check('in tree ' + t, win.hierarchy.item_for(n) is not None, True)
+    check('no draw error ' + t, 'draw error' in win.console.out.toPlainText(), False)
+    win.del_node(n)
+    check('removed ' + t, len(win.scene.nodes), before)
+    check('tree clean ' + t, win.hierarchy.tree.topLevelItemCount(), before)
+for i in range(12):
+    win.add_node('Rect', None, None)
+    win.del_node(win.sel)
+check('add del loop keeps count', len(win.scene.nodes), base_count)
+check('no draw error after loop', 'draw error' in win.console.out.toPlainText(), False)
+
 # сохранение и загрузка
 path = win.save()
 sc2 = load_scene(path)

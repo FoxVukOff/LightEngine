@@ -190,6 +190,8 @@ class Canvas(QWidget):
         b = n.bounds()
         c = to_qcolor(SEL)
         if b is None:
+            if not hasattr(n, 'wpos'):
+                return
             pos = n.wpos()
             p.setPen(QPen(c, 1.5 * w))
             p.setBrush(QColor(0, 0, 0, 0))
@@ -325,6 +327,8 @@ class Canvas(QWidget):
         self.zoom_by(f, pos.x(), pos.y())
 
     def set_node_world(self, n, world):
+        if not hasattr(n, 'pos'):
+            return
         base = Vec(0, 0)
         if n.parent is not None and hasattr(n.parent, 'wpos'):
             base = n.parent.wpos()
@@ -359,7 +363,7 @@ class Canvas(QWidget):
         step = self.scene().grid or 32
         if ev.modifiers() & Qt.KeyboardModifier.ShiftModifier:
             step = 1
-        if name in ('up', 'down', 'left', 'right') and self.sel is not None:
+        if name in ('up', 'down', 'left', 'right') and hasattr(self.sel, 'pos'):
             d = {'up': Vec(0, -step), 'down': Vec(0, step), 'left': Vec(-step, 0), 'right': Vec(step, 0)}[name]
             self.set_node_world(self.sel, self.sel.wpos() + d)
             self.moved.emit(self.sel)

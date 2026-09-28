@@ -166,7 +166,7 @@
       "name": "ball",
       "script": "# простое физическое тело\non_update(dt):\n    self.angle = self.angle + 90 * dt\n    if self.pos.y > 452:\n        self.pos.y = 452\n        self.vel.y = self.vel.y * -0.7\n        self.vel.x = self.vel.x * 0.98\n        if abs(self.vel.y) < 40:\n            self.vel.y = 0\n",
       "pos": [
-        624.0,
+        664.0,
         128.0
       ],
       "vel": [

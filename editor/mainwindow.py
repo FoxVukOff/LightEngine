@@ -308,21 +308,23 @@ class MainWindow(QMainWindow):
         self.canvas.frame_all()
 
     def add_node(self, t, at=None, parent=None):
+        # позицию считаем до того как узел попал в сцену,
+        # иначе при ошибке остаётся невидимый сирота в дереве
+        if parent is None and self.sel is not None and t == 'Node2D':
+            parent = self.sel
+        if at is None:
+            if self.sel is not None and hasattr(self.sel, 'wpos'):
+                at = self.sel.wpos()
+            else:
+                at = self.canvas.to_world(self.canvas.width() / 2, self.canvas.height() / 2)
         node = make_node(t, self.unique_name(t))
         tmpl = TEMPLATES.get(t)
         if tmpl:
             node.script = tmpl % node.name if '%s' in tmpl else tmpl
-        if parent is None and self.sel is not None and t == 'Node2D':
-            parent = self.sel
-        self.scene.add(node, parent)
-        if at is None:
-            if self.sel is not None:
-                at = self.sel.wpos()
-            else:
-                at = self.canvas.to_world(self.canvas.width() / 2, self.canvas.height() / 2)
         if hasattr(node, 'pos'):
             base = node.parent.wpos() if node.parent is not None and hasattr(node.parent, 'wpos') else Vec(0, 0)
             node.pos = at - base
+        self.scene.add(node, parent)
         self.hierarchy.rebuild(self.sel)
         self.select_node(node)
         self.touch()
