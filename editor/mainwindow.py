@@ -567,7 +567,7 @@ class MainWindow(QMainWindow):
             return
         self.save()
         from build.build_game import build
-        name, ok = QInputDialog.getText(self, 'build game', 'exe name', text=self.project.name)
+        name, ok = QInputDialog.getText(self, 'build game', 'имя папки с exe', text=self.project.name)
         if not ok or not name.strip():
             return
         self.log('building %s, see console' % name.strip())
@@ -576,10 +576,11 @@ class MainWindow(QMainWindow):
         if ok != QMessageBox.StandardButton.Yes:
             return
         try:
-            build(self.project, name.strip(), entry=self.scene_path)
-            self.log('build done, dist in %s' % self.project.dist)
+            path = build(self.project, name.strip(), entry=self.scene_path)
+            self.log('build done, %s' % path)
         except Exception as err:
             self.log('build failed: %s' % err)
+            QMessageBox.warning(self, 'build failed', '%s' % err)
 
     # --- прочее ---
 

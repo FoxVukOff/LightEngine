@@ -6,9 +6,9 @@ play прямо в редакторе и сборка игры в отдельн
 
 автор: **FoxVukOff**
 
-![окно приветствия](docs/welcome.png)
+![окно приветствия](docs/welcome-new.png)
 
-![редактор](docs/editor.png)
+![редактор](docs/editor-dark.png)
 
 ## возможности
 
@@ -61,7 +61,6 @@ python main.py
 
 ```bat
 build\build_exe.bat
-build\build_exe.bat --onedir
 build\build_exe.bat --console
 ```
 
@@ -76,14 +75,16 @@ python build\build_game.py projects/demo --name mygame --console
 результат лежит в `dist` проекта, для движка в `build\dist`.
 нужен `pip install pyinstaller`.
 
-про один файл или папку:
+сборка всегда папкой, `--onedir`. рядом с exe лежит папка `_internal` с библиотеками qt,
+при запуске она распаковывается заново, поэтому первый старт медленнее. отдавать игроку
+надо **всю папку целиком**, можно запаковать в zip.
 
-| сборка | что отдаётся игроку | размер |
-| --- | --- | --- |
-| `--onefile` (по умолчанию) | один exe, сцена и текстуры внутри | 38 МБ |
-| `--onedir` | exe и папка `_internal` рядом, оба нужны | exe 2 МБ + 125 МБ |
-
-`--onedir` быстрее запускается, `--onefile` удобнее раздавать.
+```text
+build_game.bat projects\demo lightgame
+└── projects\demo\dist\lightgame\
+    ├── lightgame.exe
+    └── _internal\
+```
 
 ## структура проекта
 
@@ -126,7 +127,7 @@ on_update(dt):
 
 сцена в play, свет от `Light2D` и зона ввода у `Area`:
 
-![сцена](docs/scene.png)
+![сцена](docs/scene-play.png)
 
 ## тесты
 

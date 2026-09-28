@@ -17,7 +17,7 @@ if __name__ == '__main__':
 '''
 
 
-def build(project, name='game', entry=None, onefile=True, console=False, icon=None):
+def build(project, name='game', entry=None, console=False, icon=None):
     if not have_pyinstaller():
         raise RuntimeError('pyinstaller not found, run: pip install pyinstaller')
     root = engine_root()
@@ -40,15 +40,16 @@ def build(project, name='game', entry=None, onefile=True, console=False, icon=No
     ]
     if os.path.isdir(project.scripts):
         adds.append((project.scripts, 'scripts'))
-    exe = run_pyinstaller(name, stub, out, adds=adds,
-                          hidden=('engine.gameapp', 'engine.game', 'engine.nodescript',
-                                  'engine.project', 'engine.serialize', 'lscript.parser',
-                                  'lscript.runtime', 'lscript.builtins'),
-                          onefile=onefile, console=console,
-                          icon=icon or os.path.join(project.root, 'assets', 'icon.ico'))
-    final = os.path.join(project.dist, os.path.basename(exe))
-    if os.path.abspath(exe) != os.path.abspath(final):
-        shutil.move(exe, final)
+    folder = run_pyinstaller(name, stub, out, adds=adds,
+                             hidden=('engine.gameapp', 'engine.game', 'engine.nodescript',
+                                     'engine.project', 'engine.serialize', 'lscript.parser',
+                                     'lscript.runtime', 'lscript.builtins'),
+                             console=console,
+                             icon=icon or os.path.join(project.root, 'assets', 'icon.ico'))
+    final = os.path.join(project.dist, name)
+    if os.path.abspath(folder) != os.path.abspath(final):
+        shutil.rmtree(final, ignore_errors=True)
+        shutil.move(folder, final)
     shutil.rmtree(out, ignore_errors=True)
     print('[build] game ready: %s' % final)
     return final
@@ -60,7 +61,6 @@ def main():
     ap.add_argument('project', help='path to project.json or project folder')
     ap.add_argument('--name', default=None)
     ap.add_argument('--scene', default=None)
-    ap.add_argument('--onedir', action='store_true')
     ap.add_argument('--console', action='store_true')
     a = ap.parse_args()
     from engine.project import Project
@@ -69,7 +69,7 @@ def main():
         path = os.path.join(path, 'project.json')
     p = Project.open(path)
     name = a.name or p.name
-    print(build(p, name, a.scene, onefile=not a.onedir, console=a.console))
+    print(build(p, name, a.scene, console=a.console))
     return 0
 
 

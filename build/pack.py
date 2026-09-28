@@ -26,9 +26,8 @@ def add_arg(args, src, dst):
     args += ['--add-data', '%s%s%s' % (src, os.pathsep, dst.replace('\\', '/'))]
 
 
-def run_pyinstaller(name, entry, out_dir, adds=(), hidden=(), onefile=True, console=False, icon=None):
-    args = [python_exe(), '-m', 'PyInstaller', '--noconfirm', '--clean',
-            '--onefile' if onefile else '--onedir']
+def run_pyinstaller(name, entry, out_dir, adds=(), hidden=(), console=False, icon=None):
+    args = [python_exe(), '-m', 'PyInstaller', '--noconfirm', '--clean', '--onedir']
     if not console:
         args.append('--windowed')
     args += ['--name', name,
@@ -51,11 +50,8 @@ def run_pyinstaller(name, entry, out_dir, adds=(), hidden=(), onefile=True, cons
     if p.returncode != 0:
         print(err, file=sys.stderr)
         raise RuntimeError('pyinstaller failed with code %d' % p.returncode)
-    exe = os.path.join(out_dir, 'dist', name + '.exe')
-    if not os.path.exists(exe) and os.name == 'nt':
-        exe = os.path.join(out_dir, 'dist', name, name + '.exe')
+    folder = os.path.join(out_dir, 'dist', name)
+    exe = os.path.join(folder, name + '.exe' if os.name == 'nt' else '')
     if not os.path.exists(exe):
-        exe = os.path.join(out_dir, 'dist', name)
-    if not os.path.exists(exe):
-        raise RuntimeError('no exe at %s' % os.path.join(out_dir, 'dist', name))
-    return exe
+        raise RuntimeError('no exe at %s' % folder)
+    return folder
