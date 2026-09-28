@@ -76,6 +76,15 @@ python build\build_game.py projects/demo --name mygame --console
 результат лежит в `dist` проекта, для движка в `build\dist`.
 нужен `pip install pyinstaller`.
 
+про один файл или папку:
+
+| сборка | что отдаётся игроку | размер |
+| --- | --- | --- |
+| `--onefile` (по умолчанию) | один exe, сцена и текстуры внутри | 38 МБ |
+| `--onedir` | exe и папка `_internal` рядом, оба нужны | exe 2 МБ + 125 МБ |
+
+`--onedir` быстрее запускается, `--onefile` удобнее раздавать.
+
 ## структура проекта
 
 ```text
