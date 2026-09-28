@@ -1,167 +1,135 @@
 # LightEngine
 
-2д игровой движок на Python + PyQt6 со своим скриптовым языком **LightScript**.
-Редактор сцен встроенный: узлы, инспектор, канвас, консоль языка, play прямо в редакторе,
-сборка игры в отдельный exe.
+2д игровой движок на python и PyQt6 со своим скриптовым языком LightScript.
+Внутри редактор сцен: канвас, дерево узлов, инспектор, панель ассетов, консоль языка,
+play прямо в редакторе и сборка игры в отдельный exe.
 
 автор: **FoxVukOff**
 
-## запуск
+![редактор](docs/editor.png)
 
-```
-python main.py                 # редактор
-python main.py scenes/main.lscene
-run.bat                        # то же самое на windows
-```
+## возможности
 
-первый запуск создаёт `project.json`, `assets/`, `scenes/`, `dist/` и стартовую сцену.
-exe переносимый: если рядом нет проекта, он создаётся в папке самого exe вместе с демо-сценой.
+- язык LightScript: python-подобный синтаксис, события узлов, векторы, цвета, таймеры
+- узлы: `Sprite`, `Rect`, `Circle`, `Label`, `Area`, `Camera2D`, `Light2D`, `Node2D`
+- сцены в json, версии хранятся коммитами git
+- проекты: у каждого свои `assets`, `scenes` и `dist`
+- play в редакторе, тест в отдельном окне, экспорт игры в exe
+- консоль LightScript прямо в редакторе, `help()` показывает список языка
 
-## сборка
+## быстрый старт
 
-```
-build\build_exe.bat            # сам движок -> build\dist\LightEngine.exe
-build\build_exe.bat --onedir   # папкой, старт быстрее
-build\build_exe.bat --console  # с консолью, видно print и ошибки
-
-build\build_game.bat путь_к_проекту имя_игры
-python build\build_game.py . --name mygame
+```bat
+pip install -r requirements.txt
+python main.py
 ```
 
-в редакторе: `file -> build game exe...` (ctrl+B) или `run -> run game in window`.
-Нужен `pip install pyinstaller`.
+первый запуск создаёт `project.json`, папки `assets`, `scenes`, `dist` и стартовую сцену.
+скрипты лежат в `examples`, их можно копировать в поле script у любого узла.
 
-## проекты
+## управление редактором
 
-```
-проект/
-  project.json     имя, входная сцена, размер окна, цвет фона
-  scenes/          *.lscene - сцены, json в читаемом виде
-  assets/          текстуры (png jpg bmp svg) и звуки (wav ogg mp3)
-  scripts/         текстовые заметки и куски скриптов
-  dist/            собранные exe игры
-```
-
-`file -> new project` / `open project`. У каждого проекта свои ассеты и свой dist.
-
-## узлы
-
-| тип | что это |
+| клавиши | действие |
 | --- | --- |
-| `Node2D` | пустой контейнер с трансформом |
-| `Sprite` | текстура из assets, цвет, якоря, flip |
-| `Rect` | прямоугольник, заливка или рамка, flip |
-| `Circle` | круг |
-| `Label` | текст |
-| `Area` | невидимая зона: ввод и столкновения |
-| `Camera2D` | камера, зум, слежение за узлом |
-| `Light2D` | аддитивное свечение |
-
-у каждого узла: `pos`, `vel`, `gravity`, `angle`, `spin`, `scale`, `z`, `visible`, `script`.
-Позиция детей локальная, `wpos()` даёт мировую.
-
-## панели редактора
-
-* **nodes** - дерево сцены, кнопки `+` `dup` `del` и порядок
-* **properties** - свойства выбранного узла и редактор LightScript
-* **assets** - файлы проекта, `import png` закидывает текстуры, двойной клик ставит текстуру в выбранный `Sprite`
-* **console** - консоль LightScript, `self` это выбранный узел, `help()` даёт список языка
-
-## LightScript
-
-похож на python, но с сахаром и без `class` (есть `func` и события-функции).
-
-```
-let hp = 100
-const MAX = 3
-x = 5                        # можно и без let
-
-func heal(v, mult=1.0):
-    hp = hp + v * mult
-    return hp
-
-on_start:
-    self.say("hp is ", hp)
-
-on_update(dt):
-    if input.down("right"):
-        self.pos = self.pos + v2(300, 0) * dt
-    elif input.down("left"):
-        self.pos = self.pos + v2(-300, 0) * dt
-    unless hp <= 0:
-        hp -= 1
-
-on_draw(g):
-    g.rect(self.pos.x, self.pos.y, hp, 12, rgb(90, 220, 140))
-```
-
-отличия от python:
-
-* `func` и `def`, плюс голые события `on_start:` / `on_update(dt):` без `func`
-* `let` / `const`, но присваивать можно и без `let`
-* `unless` = `if not`, `repeat n` (и `repeat -1` как бесконечный цикл), `pass`
-* тернарник в двух видах: `a if c else b` и `c ? a : b`
-* `a ?? b` - дефолт, `a?.b` - безопасный доступ, `a |> f(x)` - пайп
-* `a..b` и `a..b..c` - диапазоны, правая граница не включается как в `range`
-* `//` и `#` комментарии, `\` перенос строки
-* `"""..."""` многострочные строки
-* `for k, v in items(dict)` - два значения сразу
-
-события: `on_start`, `on_update(dt)`, `on_draw(g)`, `on_click(pos)`, `on_key(key)`,
-`on_collide(other)`, `on_collide_exit(other)`, `on_timer(name)`.
-
-переменные верхнего уровня живут между кадрами, поэтому счётчики удобно держать там.
-
-### self
-
-`x y pos vel gravity angle spin scale z visible alive name width height scene input`
-`time dt frame screen center res node`
-
-методы: `say() kill() clone() add(type,name) remove(other) get(name) find(name)`
-`move() set_pos() set_vel() look_at() dist_to() count_children() timer(name,sec) play(name)`
-`rect() circle() line() text() sprite() poly() glow()` - рисуют в текущем кадре
-
-### функции
-
-`print sin cos tan atan2 sqrt abs min max round floor ceil clamp lerp lerp_angle deg rad`
-`vec2 v2 rgb color mix len range list dict keys values items has push pop sort count`
-`rand randi choice shuffle chance time frame dt screen center input`
-
-`vec2`: `+ - * / .len() .normed() .angle() .rot() .dist_to() .to(other,t)`
-`color`: `rgb(r,g,b,a) 0xff8800 .mix() .to_hex()`
-
-## горячие клавиши
-
-| | |
-| --- | --- |
-| `F5` / `F6` | play / stop |
-| `space` + мышь | панорамирование, колесо - зум |
-| `ctrl+d` / `del` | дублировать / удалить |
-| `ctrl+s` / `ctrl+o` | сохранить / открыть сцену |
+| `F5` | play |
+| `F6` | stop |
+| `ctrl+s` | сохранить сцену |
+| `ctrl+o` | открыть сцену |
 | `ctrl+b` | собрать игру в exe |
-| `ctrl+shift+f` | вписать всю сцену в экран |
+| `ctrl+d` | дублировать узел |
+| `ctrl+shift+f` | вписать сцену в экран |
+| `del` | удалить узел |
 | `f` | навести камеру на выбранный узел |
-| стрелки | сдвиг на грид, `shift` - на пиксель |
-| правая кнопка | меню: добавить узел, дублировать, удалить, z |
+| стрелки | сдвиг на грид, с `shift` на пиксель |
+| колесо | зум |
+| `space` и мышь | панорамирование |
+| правая кнопка | меню узла, добавить, дублировать, удалить, z |
 
-## тесты
+## сборка exe
 
+движок:
+
+```bat
+build\build_exe.bat
+build\build_exe.bat --onedir
+build\build_exe.bat --console
 ```
-python tests\run_tests.py
-python tests\run_editor_test.py
-set LE_SELFTEST=1 && python main.py
-set LE_SELFTEST=1 && dist\mygame.exe
+
+игра из проекта:
+
+```bat
+build\build_game.bat путь_к_проекту имя_игры
+python build\build_game.py . --name mygame --console
 ```
 
-`LE_SELFTEST` грузит сцену, прогоняет кадры и рисует в offscreen, потом выходит с кодом 0 -
-так проверяется и движок, и собранная игра.
+в редакторе то же самое делает `file -> build game exe` или `ctrl+b`.
+результат лежит в `dist` проекта, для движка в `build\dist`.
+нужен `pip install pyinstaller`.
 
-## структура
+exe переносимый: если рядом нет `project.json`, проект с демо-сценой создаётся
+в папке самого exe.
 
+## структура проекта
+
+```text
+project.json     имя, входная сцена, размер окна, цвет фона
+scenes/          сцены .lscene, json в читаемом виде
+assets/          текстуры png jpg bmp svg и звуки wav ogg mp3
+scripts/         заметки и куски скриптов
+dist/            собранные exe игр
 ```
+
+## структура репозитория
+
+```text
 engine/     mathx node scene game graphics resources input project serialize gameapp
 lscript/    lexer parser runtime builtins
 editor/     mainwindow canvas hierarchy inspector console assets
 build/      build_exe.py build_game.py pack.py
+tests/      run_tests.py run_editor_test.py
 tools/      make_demo.py selftest_game.py
 ```
+
+## язык
+
+полный справочник в [docs/lightscript.md](docs/lightscript.md), короткий пример:
+
+```lightscript
+on_update(dt):
+    let dir = input.axis()
+    self.vel = dir * 320
+    if input.pressed("space"):
+        self.vel.y = -430
+    if dir:
+        self.angle = lerp_angle(self.angle, dir.angle(), 0.25)
+        self.find("body").flip_x = dir.x < 0
+```
+
+сцена в play, свет от `Light2D` и зона ввода у `Area`:
+
+![сцена](docs/scene.png)
+
+## тесты
+
+```bat
+python tests\run_tests.py
+python tests\run_editor_test.py
+```
+
+`LE_SELFTEST=1` грузит сцену, гоняет кадры и рисует в offscreen, потом выходит с кодом 0.
+так проверяется и движок из исходников, и собранный exe:
+
+```bat
+set LE_SELFTEST=1 && python main.py
+set LE_SELFTEST=1 && dist\mygame.exe
+```
+
+## требования
+
+- python 3.11 и новее
+- PyQt6
+- pyinstaller, только для сборки exe
+
+## лицензия
+
+MIT, автор FoxVukOff, файл [LICENSE](LICENSE).

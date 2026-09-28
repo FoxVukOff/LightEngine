@@ -103,7 +103,7 @@ def find_scene(root):
 
 
 def selftest(scene, root):
-    """проверка что игра грузится и рисуется, включается через LE_SELFTEST"""
+    # грузит сцену, гоняет кадры и рисует offscreen, включается через LE_SELFTEST
     from PyQt6.QtGui import QImage
     app = QApplication.instance() or QApplication([])
     g = make_game(scene, root)

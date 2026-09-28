@@ -24,9 +24,8 @@ def clamp01(v):
     return 0.0 if v < 0.0 else 1.0 if v > 1.0 else v
 
 
+# сразу-режим рисования, координаты всегда в мире
 class Graphics:
-    """сразу-режим рисования, координаты всегда в мире"""
-
     def __init__(self, painter, res):
         self.p = painter
         self.res = res
@@ -53,7 +52,6 @@ class Graphics:
         else:
             p.setPen(self.pen(color, width))
             p.setBrush(QColor(0, 0, 0, 0))
-        p.setBrushOrigin(r.center())
         p.drawRect(r)
 
     def line(self, x0, y0, x1, y1, color=WHITE, width=1.0):
@@ -69,7 +67,6 @@ class Graphics:
         else:
             p.setPen(self.pen(color, width))
             p.setBrush(QColor(0, 0, 0, 0))
-        p.setBrushOrigin(rect.center())
         p.drawEllipse(rect)
 
     def poly(self, points, color=WHITE, fill=True, width=1.0):
@@ -117,23 +114,20 @@ class Graphics:
         g.setColorAt(0.0, self.color(c0))
         g.setColorAt(1.0, self.color(c1))
         p = self.p
-        p.setPen(QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(g))
-        p.setBrushOrigin(QPointF(x + w / 2, y + h / 2))
+        self.fill(g)
         p.drawRect(QRectF(x, y, w, h))
 
     def glow(self, x, y, r, color, power=1.0):
-        g = QRadialGradient(QPointF(x, y), max(0.1, r))
+        # координаты градиента уже в мире, brush origin трогать нельзя
         c = color if isinstance(color, Color) else Color(1, 1, 1, 1)
+        g = QRadialGradient(QPointF(x, y), max(0.1, r))
         g.setColorAt(0.0, self.color(c, c.a))
         g.setColorAt(min(0.95, 0.5 * power), self.color(c, c.a * 0.28))
         g.setColorAt(1.0, self.color(c, 0.0))
         p = self.p
         p.save()
         p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Plus)
-        p.setPen(QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(g))
-        p.setBrushOrigin(QPointF(x, y))
+        self.fill(g)
         p.drawEllipse(QPointF(x, y), r, r)
         p.restore()
 

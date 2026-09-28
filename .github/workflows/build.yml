@@ -1,0 +1,45 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python tests/run_tests.py
+      - run: python tests/run_editor_test.py
+      - name: smoke editor
+        run: |
+          $env:LE_SELFTEST='1'
+          $env:QT_QPA_PLATFORM='offscreen'
+          python main.py
+
+  exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python build/build_exe.py --onedir --console
+      - run: python build/build_game.py . --name lightgame --console
+      - name: smoke built game
+        run: |
+          $env:LE_SELFTEST='1'
+          $env:QT_QPA_PLATFORM='offscreen'
+          dist/lightgame.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lightengine
+          path: |
+            build/dist/LightEngine/LightEngine.exe
+            dist/lightgame.exe

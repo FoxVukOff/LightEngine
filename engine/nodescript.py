@@ -231,9 +231,8 @@ class NodeScript:
                 self.api.g = NULL_GFX
 
 
+# хост для консоли редактора, тот же интерфейс что у game
 class ScriptHost:
-    """база для встроенной консоли редактора"""
-
     def __init__(self, scene, res):
         self.scene = scene
         self.res = res

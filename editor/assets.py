@@ -6,9 +6,8 @@ from PyQt6.QtWidgets import (QAbstractItemView, QFileDialog, QHBoxLayout, QLabel
                              QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 
+# файлы проекта, двойной клик ставит текстуру в выбранный узел
 class Assets(QWidget):
-    """список файлов проекта, двойной клик ставит текстуру в выбранный узел"""
-
     used = pyqtSignal(str)
 
     def __init__(self, win):

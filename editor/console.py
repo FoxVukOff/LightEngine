@@ -76,7 +76,10 @@ class Console(QWidget):
         self.hi = 0
         self.host = None
         self.env = None
+        first = self.host is None
         self.reset()
+        if first:
+            self.log('lightscript console, help() for the list')
 
     def reset(self):
         sc = self.win.scene
@@ -91,7 +94,6 @@ class Console(QWidget):
         env.define('help', lambda: help_text())
         self.env = env
         self.interp = Interp('console')
-        self.log('lightscript console, help() for the list')
 
     def node(self):
         n = self.win.sel
