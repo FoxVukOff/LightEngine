@@ -1,7 +1,7 @@
 import random
 
 from lscript.errors import ScriptError
-from lscript.builtins import make_globals, help_text
+from lscript.builtins import make_globals
 from lscript.runtime import Env, Func, Interp, to_str
 from lscript.parser import parse
 
@@ -246,10 +246,6 @@ class ScriptHost:
         self.game = None
         self.out = []
 
-    @property
-    def log_target(self):
-        return None
-
     def log(self, msg, node=None):
         self.out.append('[%s] %s' % (node.name, msg) if node else str(msg))
         if len(self.out) > 200:
@@ -283,6 +279,3 @@ class ScriptHost:
             fx.setVolume(volume)
             fx.setLoopCount(loop)
             fx.play()
-
-    def help(self):
-        return help_text()

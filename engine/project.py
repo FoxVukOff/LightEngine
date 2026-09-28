@@ -1,16 +1,12 @@
+"""папка проекта: project.json плюс свои assets, scenes и dist"""
+
 import json
 import os
-import shutil
 
 from . import AUTHOR, ENGINE, LANG
-from .mathx import Vec, hex_to_color
 
 FILE = 'project.json'
 DIRS = ('assets', 'scenes', 'dist', 'scripts')
-
-
-def default_project(root, name='light'):
-    return Project(root, name)
 
 
 class Project:
@@ -22,7 +18,6 @@ class Project:
         self.h = int(h)
         self.bg = bg
         self.path = os.path.join(self.root, FILE)
-        self.recent = []
 
     @property
     def assets(self):
@@ -46,12 +41,6 @@ class Project:
             n += '.lscene'
         return os.path.join(self.scenes, n)
 
-    def rel(self, path):
-        try:
-            return os.path.relpath(path, self.root).replace('\\', '/')
-        except ValueError:
-            return path
-
     def make_dirs(self):
         for d in (self.assets, self.scenes, self.dist, self.scripts):
             os.makedirs(d, exist_ok=True)
@@ -72,15 +61,6 @@ class Project:
         with open(self.path, 'w', encoding='utf-8') as f:
             json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
         return self.path
-
-    def new_scene_file(self, name):
-        p = self.scene_path(name)
-        return p
-
-    def list_scenes(self):
-        if not os.path.isdir(self.scenes):
-            return []
-        return sorted(f for f in os.listdir(self.scenes) if f.lower().endswith('.lscene'))
 
     def read(self):
         with open(self.path, 'r', encoding='utf-8') as f:
@@ -110,27 +90,3 @@ class Project:
             if parent == cur:
                 return None
             cur = parent
-
-    def starter(self, scene_cls, scene_mod):
-        from . import serialize
-        sc = scene_cls(self.name)
-        sc.size = Vec(self.w, self.h)
-        sc.bg = hex_to_color(self.bg)
-        sc.build_starter()
-        self.make_dirs()
-        p = self.scene_path(self.entry)
-        serialize.save_scene(p, sc)
-        return p
-
-    def copy_into(self, dest_root, name=None):
-        dest_root = os.path.abspath(dest_root)
-        os.makedirs(dest_root, exist_ok=True)
-        for d in ('assets', 'scenes', 'scripts'):
-            src = os.path.join(self.root, d)
-            dst = os.path.join(dest_root, d)
-            if os.path.isdir(src):
-                shutil.copytree(src, dst, dirs_exist_ok=True)
-        p = Project(dest_root, name or self.name)
-        p.entry = self.entry
-        p.save()
-        return p

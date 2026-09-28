@@ -15,6 +15,7 @@ run.bat                        # то же самое на windows
 ```
 
 первый запуск создаёт `project.json`, `assets/`, `scenes/`, `dist/` и стартовую сцену.
+exe переносимый: если рядом нет проекта, он создаётся в папке самого exe вместе с демо-сценой.
 
 ## сборка
 
@@ -49,7 +50,7 @@ python build\build_game.py . --name mygame
 | --- | --- |
 | `Node2D` | пустой контейнер с трансформом |
 | `Sprite` | текстура из assets, цвет, якоря, flip |
-| `Rect` | прямоугольник, заливка или рамка |
+| `Rect` | прямоугольник, заливка или рамка, flip |
 | `Circle` | круг |
 | `Label` | текст |
 | `Area` | невидимая зона: ввод и столкновения |
@@ -58,6 +59,13 @@ python build\build_game.py . --name mygame
 
 у каждого узла: `pos`, `vel`, `gravity`, `angle`, `spin`, `scale`, `z`, `visible`, `script`.
 Позиция детей локальная, `wpos()` даёт мировую.
+
+## панели редактора
+
+* **nodes** - дерево сцены, кнопки `+` `dup` `del` и порядок
+* **properties** - свойства выбранного узла и редактор LightScript
+* **assets** - файлы проекта, `import png` закидывает текстуры, двойной клик ставит текстуру в выбранный `Sprite`
+* **console** - консоль LightScript, `self` это выбранный узел, `help()` даёт список языка
 
 ## LightScript
 
@@ -141,13 +149,19 @@ on_draw(g):
 ```
 python tests\run_tests.py
 python tests\run_editor_test.py
+set LE_SELFTEST=1 && python main.py
+set LE_SELFTEST=1 && dist\mygame.exe
 ```
+
+`LE_SELFTEST` грузит сцену, прогоняет кадры и рисует в offscreen, потом выходит с кодом 0 -
+так проверяется и движок, и собранная игра.
 
 ## структура
 
 ```
 engine/     mathx node scene game graphics resources input project serialize gameapp
 lscript/    lexer parser runtime builtins
-editor/     mainwindow canvas hierarchy inspector console
+editor/     mainwindow canvas hierarchy inspector console assets
 build/      build_exe.py build_game.py pack.py
+tools/      make_demo.py selftest_game.py
 ```

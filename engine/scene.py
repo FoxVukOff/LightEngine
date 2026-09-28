@@ -12,7 +12,7 @@ on_update(dt):
         self.vel.y = -430
     if dir:
         self.angle = lerp_angle(self.angle, dir.angle(), 0.25)
-        self.flip_x = dir.x < 0
+        self.find("body").flip_x = dir.x < 0
     if self.pos.y > 420:
         self.pos.y = 420
         self.vel.y = 0

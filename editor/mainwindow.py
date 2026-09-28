@@ -1,12 +1,11 @@
 import os
-import subprocess
 import sys
 import time
 
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (QApplication, QDockWidget, QFileDialog, QInputDialog, QLabel,
-                             QMainWindow, QMenu, QMessageBox, QToolBar, QWidget)
+                             QMainWindow, QMenu, QMessageBox, QSizePolicy, QToolBar, QWidget)
 
 from engine import AUTHOR, ENGINE, LANG
 from engine.game import Game
@@ -16,6 +15,7 @@ from engine.project import Project
 from engine.resources import Resources, app_root
 from engine.scene import Scene
 from engine.serialize import load_scene, node_from_dict, save_scene
+from editor.assets import Assets
 from editor.canvas import Canvas
 from editor.console import Console
 from editor.hierarchy import Hierarchy
@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         self.hierarchy = Hierarchy(self)
         self.inspector = Inspector(self)
         self.console = Console(self)
+        self.assets = Assets(self)
 
         self.dock_nodes = QDockWidget('nodes', self)
         self.dock_nodes.setWidget(self.hierarchy)
@@ -53,6 +54,10 @@ class MainWindow(QMainWindow):
         self.dock_props = QDockWidget('properties', self)
         self.dock_props.setWidget(self.inspector)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_props)
+
+        self.dock_assets = QDockWidget('assets', self)
+        self.dock_assets.setWidget(self.assets)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock_assets)
 
         self.dock_console = QDockWidget('console', self)
         self.dock_console.setWidget(self.console)
@@ -146,8 +151,11 @@ class MainWindow(QMainWindow):
             a.setToolTip(tip)
             a.triggered.connect(slot)
             tb.addAction(a)
-        self.space = QLabel(' ')
-        tb.addWidget(self.space)
+        sp = QWidget()
+        sp.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        tb.addWidget(sp)
+        self.tb_label = QLabel('')
+        tb.addWidget(self.tb_label)
 
     def wire(self):
         self.canvas.selected.connect(self.select_node)
@@ -489,6 +497,7 @@ class MainWindow(QMainWindow):
         self.console.host = None
         self.console.reset()
         self.load_scene(path)
+        self.assets.reload()
         self.dock_nodes.setWindowTitle('nodes - %s' % project.name)
 
     def project_settings(self):

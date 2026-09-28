@@ -108,6 +108,20 @@ win.console.inp.setText('self.say("hi")')
 win.console.run()
 check('console say', 'hi' in win.console.out.toPlainText())
 
+# ассеты и flip
+sprite = win.add_node('Sprite', None, None)
+check('assets listed', win.assets.tree.topLevelItem(0) is not None)
+win.select_node(sprite)
+sprite.set_prop('texture', 'missing.png')
+img = win.canvas.grab()
+check('sprite without texture drawn', 'draw error' in win.console.out.toPlainText(), False)
+sprite.set_prop('texture', '')
+flip = win.add_node('Rect', None, None)
+flip.set_prop('flip_x', True)
+check('rect flip drawn', not win.canvas.grab().isNull())
+win.del_node(sprite)
+win.del_node(flip)
+
 # сохранение и загрузка
 path = win.save()
 sc2 = load_scene(path)

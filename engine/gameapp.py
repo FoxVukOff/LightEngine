@@ -102,6 +102,23 @@ def find_scene(root):
     return None
 
 
+def selftest(scene, root):
+    """проверка что игра грузится и рисуется, включается через LE_SELFTEST"""
+    from PyQt6.QtGui import QImage
+    app = QApplication.instance() or QApplication([])
+    g = make_game(scene, root)
+    g.input.key_down('right')
+    for i in range(60):
+        g.step(0.016)
+    img = QImage(320, 200, QImage.Format.Format_ARGB32)
+    p = QPainter(img)
+    g.render(p, Vec(320, 200))
+    p.end()
+    print('selftest: %s, nodes %d, frame %d, errors %s' % (
+        scene.name, len(list(scene.walk())), g.frame, g.errors or 'none'))
+    return 0 if not g.errors else 1
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     root = os.getcwd()
@@ -120,4 +137,6 @@ def main(argv=None):
         return 1
     proj_root = os.path.dirname(os.path.dirname(os.path.abspath(path)))
     scene = load_scene(path)
+    if os.environ.get('LE_SELFTEST'):
+        return selftest(scene, proj_root)
     return run_scene(scene, proj_root, scene.name)

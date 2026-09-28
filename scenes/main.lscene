@@ -65,6 +65,7 @@
       "border": 0.0,
       "ox": 0.5,
       "oy": 0.0,
+      "flip_x": false,
       "children": []
     },
     {
@@ -95,6 +96,7 @@
       "border": 0.0,
       "ox": 0.5,
       "oy": 1.0,
+      "flip_x": false,
       "children": []
     },
     {
@@ -125,6 +127,7 @@
       "border": 0.0,
       "ox": 0.5,
       "oy": 1.0,
+      "flip_x": false,
       "children": []
     },
     {
@@ -155,6 +158,7 @@
       "border": 0.0,
       "ox": 0.5,
       "oy": 1.0,
+      "flip_x": false,
       "children": []
     },
     {
@@ -187,7 +191,7 @@
     {
       "type": "Area",
       "name": "player",
-      "script": "# игрок: стрелки или wasd, пробел - прыжок\non_start:\n    self.say(\"player ready\")\n\non_update(dt):\n    let dir = input.axis()\n    self.vel = dir * 320\n    if input.pressed(\"space\"):\n        self.vel.y = -430\n    if dir:\n        self.angle = lerp_angle(self.angle, dir.angle(), 0.25)\n        self.flip_x = dir.x < 0\n    if self.pos.y > 420:\n        self.pos.y = 420\n        self.vel.y = 0\n",
+      "script": "# игрок: стрелки или wasd, пробел - прыжок\non_start:\n    self.say(\"player ready\")\n\non_update(dt):\n    let dir = input.axis()\n    self.vel = dir * 320\n    if input.pressed(\"space\"):\n        self.vel.y = -430\n    if dir:\n        self.angle = lerp_angle(self.angle, dir.angle(), 0.25)\n        self.find(\"body\").flip_x = dir.x < 0\n    if self.pos.y > 420:\n        self.pos.y = 420\n        self.vel.y = 0\n",
       "pos": [
         123.0,
         456.0
@@ -238,6 +242,7 @@
           "border": 0.0,
           "ox": 0.5,
           "oy": 0.5,
+          "flip_x": false,
           "children": []
         },
         {

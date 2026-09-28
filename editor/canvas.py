@@ -34,7 +34,7 @@ class Canvas(QWidget):
         self._mode = None
         self._off = Vec(0, 0)
         self._press = Vec(0, 0)
-        self._last_mouse = Vec(0, 0)
+        self._box = None
         self._space = False
 
     def scene(self):
@@ -133,7 +133,6 @@ class Canvas(QWidget):
         y0 = int((self.pan.y - size.y / 2 / self.zoom) // step) * step
         y1 = self.pan.y + size.y / 2 / self.zoom
         big = max(1, int(8 * 32 / step))
-        i = 0
         x = x0
         while x <= x1:
             pen = QPen(to_qcolor(GRID_BIG if (int(round(x / step)) % big) == 0 else GRID))
@@ -141,7 +140,6 @@ class Canvas(QWidget):
             p.setPen(pen)
             p.drawLine(QPointF(x, y0), QPointF(x, y1))
             x += step
-            i += 1
         y = y0
         while y <= y1:
             pen = QPen(to_qcolor(GRID_BIG if (int(round(y / step)) % big) == 0 else GRID))

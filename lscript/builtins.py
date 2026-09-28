@@ -101,6 +101,8 @@ def help_text():
             'СЃРѕР±С‹С‚РёСЏ: on_start on_update(dt) on_draw(g) on_click(pos) on_key(key) on_collide(other)',
             'self: x y pos vel angle scale spin z alive scene input time dt frame screen',
             'self: say() kill() clone() get(name) find(name) add(type,name) move() set_pos() play()',
+            'self: rect() circle() line() text() sprite() poly() glow() - рисуют в текущем кадре',
+            'on_draw(g): g.rect g.circle g.line g.text g.sprite g.poly g.glow g.gradient_rect g.clip',
             'РІСЃС‚СЂРѕРµРЅРЅС‹Рµ СЃРїРёСЃРєРё: keys values items has push pop sort count len range',
             'print() РґР»СЏ РєРѕРЅСЃРѕР»Рё СЂРµРґР°РєС‚РѕСЂР°, СЂР°Р±РѕС‚Р°РµС‚ Рё РІ РёРіСЂРµ']
     return '\n'.join(out)

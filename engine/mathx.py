@@ -185,10 +185,6 @@ def hex_to_color(s, a=1.0):
     return Color(n[0], n[1], n[2], n[3] if s.startswith('#') and len(s) == 8 else a)
 
 
-def color_to_hex(c):
-    return c.to_hex() if isinstance(c, Color) else str(c)
-
-
 def to_color(v, a=1.0):
     if isinstance(v, Color):
         return v
@@ -218,12 +214,6 @@ def lerp_angle(a, b, t):
 
 def wrap_angle(a):
     return a % 360.0
-
-
-def approach(cur, target, step):
-    if cur < target:
-        return min(cur + step, target)
-    return max(cur - step, target)
 
 
 def rect_overlap(a, b):

@@ -310,6 +310,7 @@ class Rect(Node2D):
         P('border', 'float', 0.0, 0.0, 64.0),
         P('ox', 'float', 0.5, 0.0, 1.0),
         P('oy', 'float', 0.5, 0.0, 1.0),
+        P('flip_x', 'bool', False),
     ]
 
     def __init__(self, name='rect'):
@@ -321,6 +322,7 @@ class Rect(Node2D):
         self.border = 0.0
         self.ox = 0.5
         self.oy = 0.5
+        self.flip_x = False
 
     def draw(self, g):
         s = self.wscale()
@@ -329,6 +331,9 @@ class Rect(Node2D):
         if self.filled and self.border > 0:
             g.rect(p.x, p.y, w, h, c, True, ox=self.ox, oy=self.oy)
             g.rect(p.x, p.y, w - self.border * 2, h - self.border * 2, Color(0, 0, 0, 0.35), True, ox=self.ox, oy=self.oy)
+            return
+        if self.flip_x:
+            g.rect(p.x, p.y + h / 2, w, -h, c, self.filled, max(1.0, self.border), ox=self.ox, oy=0.5)
             return
         g.rect(p.x, p.y, w, h, c, self.filled, max(1.0, self.border), ox=self.ox, oy=self.oy)
 
