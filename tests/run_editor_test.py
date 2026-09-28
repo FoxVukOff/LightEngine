@@ -194,6 +194,35 @@ c.snap = True
 c.keyPressEvent(FakeKeyEvent('f'))
 check('frame node keeps zoom', c.zoom > 0)
 
+# переименование через дерево, с настоящим редактором
+from PyQt6.QtTest import QTest
+from PyQt6.QtWidgets import QLineEdit
+
+rn = win.add_node('Rect', None, None)
+win.select_node(rn)
+app.processEvents()
+item = win.hierarchy.item_for(rn)
+check('item editable', bool(item.flags() & Qt.ItemFlag.ItemIsEditable), True)
+win.hierarchy.rename(item)
+app.processEvents()
+ed = win.hierarchy.tree.viewport().findChild(QLineEdit)
+check('editor opens on rename', ed is not None, True)
+if ed is not None:
+    ed.setText('hero')
+    QTest.keyClick(ed, Qt.Key.Key_Return)
+    app.processEvents()
+    check('node renamed', rn.name, 'hero')
+    check('item text renamed', item.text(0), 'hero')
+    check('inspector name synced', win.inspector.widgets['name'][0].text(), 'hero')
+    check('name survives rebuild', win.hierarchy.rebuild(rn) or win.hierarchy.item_for(rn).text(0), 'hero')
+    from PyQt6.QtCore import QCoreApplication, QEvent
+    QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+    ed2 = win.hierarchy.tree.viewport().findChild(QLineEdit)
+    check('editor closed after rename', ed2 is None, True)
+rn.name = 'renamed_back'
+check('name set from code', rn.name, 'renamed_back')
+win.del_node(rn)
+
 # создание и удаление каждого типа узла, без появления сирот
 base_count = len(win.scene.nodes)
 for t in ('Node', 'Node2D', 'Sprite', 'Rect', 'Circle', 'Label', 'Area', 'Camera2D', 'Light2D'):

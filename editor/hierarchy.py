@@ -57,6 +57,7 @@ class Hierarchy(QWidget):
     def add_item(self, node, parent):
         it = QTreeWidgetItem(parent)
         it.setText(0, node.name)
+        it.setFlags(it.flags() | Qt.ItemFlag.ItemIsEditable)
         it.setToolTip(0, node.TYPE)
         f = it.font(0)
         f.setPointSizeF(9.0)
@@ -92,9 +93,17 @@ class Hierarchy(QWidget):
 
     def renamed(self, item, col):
         node = self.win.node_by_id(item.data(0, Qt.ItemDataRole.UserRole))
-        if node is not None and item.text(0) != node.name:
-            node.name = item.text(0).strip() or node.name
-            self.changed.emit(node)
+        if node is None:
+            return
+        name = item.text(0).strip() or node.name
+        if name == node.name:
+            return
+        node.name = name
+        if item.text(0) != name:
+            self.tree.blockSignals(True)
+            item.setText(0, name)
+            self.tree.blockSignals(False)
+        self.changed.emit(node)
 
     def rename(self, item):
         self.tree.editItem(item, 0)
